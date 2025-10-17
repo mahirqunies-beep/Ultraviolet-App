@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { join } from "node:path";
 import { hostname } from "node:os";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import wisp from "wisp-server-node";
 import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
@@ -26,13 +27,70 @@ const fastify = Fastify({
 	},
 });
 
+// Memory storage file path
+const MEMORY_FILE = join(process.cwd(), "chat_memory.json");
+
+// Initialize memory storage
+let chatMemory = { lastUrl: "", lastSearch: "", timestamp: null };
+
+// Load existing memory
+if (existsSync(MEMORY_FILE)) {
+	try {
+		const data = readFileSync(MEMORY_FILE, "utf8");
+		chatMemory = JSON.parse(data);
+	} catch (err) {
+		console.log("Could not load chat memory, starting fresh");
+	}
+}
+
+// Save memory to file
+function saveMemory() {
+	try {
+		writeFileSync(MEMORY_FILE, JSON.stringify(chatMemory, null, 2));
+	} catch (err) {
+		console.error("Failed to save chat memory:", err);
+	}
+}
+
+// Serve custom public directory first
 fastify.register(fastifyStatic, {
-	root: publicPath,
+	root: join(process.cwd(), "public"),
 	decorateReply: true,
 });
 
+// Serve UV static files with a different prefix to avoid conflicts
+fastify.register(fastifyStatic, {
+	root: publicPath,
+	prefix: "/uv-static/",
+	decorateReply: false,
+});
+
 fastify.get("/uv/uv.config.js", (req, res) => {
-	return res.sendFile("uv/uv.config.js", publicPath);
+	return res.sendFile("uv/uv.config.js", join(process.cwd(), "public"));
+});
+
+// API endpoints for chat memory
+fastify.post("/api/memory/save", async (request, reply) => {
+	try {
+		const { url, search } = request.body;
+		chatMemory.lastUrl = url || "";
+		chatMemory.lastSearch = search || "";
+		chatMemory.timestamp = new Date().toISOString();
+		saveMemory();
+		return { success: true, message: "Memory saved" };
+	} catch (error) {
+		reply.code(500);
+		return { success: false, message: "Failed to save memory" };
+	}
+});
+
+fastify.get("/api/memory/load", async (request, reply) => {
+	try {
+		return { success: true, data: chatMemory };
+	} catch (error) {
+		reply.code(500);
+		return { success: false, message: "Failed to load memory" };
+	}
 });
 
 fastify.register(fastifyStatic, {

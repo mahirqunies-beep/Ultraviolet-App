@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clever Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4A90E2;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #4A90E2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .card-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .button {
+            background: #4A90E2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin: 5px;
+        }
+
+        .button:hover {
+            background: #357ABD;
+        }
+
+        .button.secondary {
+            background: #6c757d;
+        }
+
+        .button.secondary:hover {
+            background: #5a6268;
+        }
+
+        .button.success {
+            background: #28a745;
+        }
+
+        .button.success:hover {
+            background: #218838;
+        }
+
+        .navigation {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            color: #4A90E2;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .nav-link:hover {
+            background: #f8f9fa;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4A90E2;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .footer {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-area {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            cursor: crosshair;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                flex-direction: column;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Invisible overlay for hyper-clicking -->
+    <div class="empty-area" id="emptyArea"></div>
+    
+    <div class="container">
+        <header class="header">
+            <div class="logo">Clever Portal</div>
+            <div class="user-info">
+                <div class="user-avatar">U</div>
+                <span>Student User</span>
+            </div>
+        </header>
+
+        <nav class="navigation">
+            <div class="nav-links">
+                <a href="#" class="nav-link" onclick="redirectToClever(event)">Dashboard</a>
+                <a href="#" class="nav-link" onclick="redirectToClever(event)">Classes</a>
+                <a href="#" class="nav-link" onclick="redirectToClever(event)">Assignments</a>
+                <a href="#" class="nav-link" onclick="redirectToClever(event)">Grades</a>
+                <a href="#" class="nav-link" onclick="redirectToClever(event)">Resources</a>
+                <a href="#" class="nav-link" onclick="redirectToClever(event)">Settings</a>
+            </div>
+        </nav>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">12</div>
+                <div class="stat-label">Active Classes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Pending Assignments</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">95%</div>
+                <div class="stat-label">Average Grade</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">24</div>
+                <div class="stat-label">Resources Available</div>
+            </div>
+        </div>
+
+        <main class="main-content">
+            <div class="card" onclick="redirectToClever(event)">
+                <div class="card-icon" style="background: #4A90E2;">📚</div>
+                <div class="card-title">Mathematics</div>
+                <div class="card-description">Algebra and Geometry assignments and resources</div>
+            </div>
+
+            <div class="card" onclick="redirectToClever(event)">
+                <div class="card-icon" style="background: #28a745;">🔬</div>
+                <div class="card-title">Science</div>
+                <div class="card-description">Biology, Chemistry, and Physics materials</div>
+            </div>
+
+            <div class="card" onclick="redirectToClever(event)">
+                <div class="card-icon" style="background: #dc3545;">📖</div>
+                <div class="card-title">English</div>
+                <div class="card-description">Literature and writing assignments</div>
+            </div>
+
+            <div class="card" onclick="redirectToClever(event)">
+                <div class="card-icon" style="background: #ffc107;">🌍</div>
+                <div class="card-title">History</div>
+                <div class="card-description">World and American history resources</div>
+            </div>
+
+            <div class="card" onclick="redirectToClever(event)">
+                <div class="card-icon" style="background: #6f42c1;">💻</div>
+                <div class="card-title">Computer Science</div>
+                <div class="card-description">Programming and technology courses</div>
+            </div>
+
+            <div class="card" onclick="redirectToClever(event)">
+                <div class="card-icon" style="background: #fd7e14;">🎨</div>
+                <div class="card-title">Art</div>
+                <div class="card-description">Creative projects and art history</div>
+            </div>
+        </main>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="button" onclick="redirectToClever(event)">View All Classes</button>
+            <button class="button secondary" onclick="redirectToClever(event)">Recent Activity</button>
+            <button class="button success" onclick="redirectToClever(event)">Quick Access</button>
+        </div>
+
+        <footer class="footer">
+            <p>&copy; 2024 Clever Portal. All rights reserved.</p>
+            <p>Click any button or link to access the full Clever portal</p>
+        </footer>
+    </div>
+
+    <script>
+        // Function to redirect to clever.com
+        function redirectToClever(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            window.open('https://clever.com', '_blank');
+        }
+
+        // Add click listeners to all buttons and interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click listeners to all buttons
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('click', redirectToClever);
+            });
+
+            // Add click listeners to all cards
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('click', redirectToClever);
+            });
+
+            // Add click listeners to all navigation links
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', redirectToClever);
+            });
+
+            // Add click listeners to stat cards
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach(card => {
+                card.addEventListener('click', redirectToClever);
+            });
+        });
+
+        // Hyper-click functionality for empty areas
+        let clickCount = 0;
+        let clickTimer = null;
+
+        document.addEventListener('click', function(event) {
+            // Check if click is on an empty area (not on any interactive element)
+            const target = event.target;
+            const isInteractive = target.tagName === 'BUTTON' || 
+                                target.tagName === 'A' || 
+                                target.classList.contains('card') ||
+                                target.classList.contains('stat-card') ||
+                                target.closest('.card') ||
+                                target.closest('.stat-card') ||
+                                target.closest('button') ||
+                                target.closest('a');
+
+            if (!isInteractive) {
+                clickCount++;
+                
+                // Clear existing timer
+                if (clickTimer) {
+                    clearTimeout(clickTimer);
+                }
+
+                // Set timer for hyper-click detection (double-click within 500ms)
+                clickTimer = setTimeout(() => {
+                    if (clickCount >= 2) {
+                        // Hyper-click detected - open about:blank
+                        window.open('about:blank', '_blank');
+                    }
+                    clickCount = 0;
+                }, 500);
+
+                // Reset click count after timeout
+                setTimeout(() => {
+                    if (clickCount < 2) {
+                        clickCount = 0;
+                    }
+                }, 500);
+            }
+        });
+
+        // Prevent context menu on empty areas to avoid interference
+        document.addEventListener('contextmenu', function(event) {
+            const target = event.target;
+            const isInteractive = target.tagName === 'BUTTON' || 
+                                target.tagName === 'A' || 
+                                target.classList.contains('card') ||
+                                target.classList.contains('stat-card') ||
+                                target.closest('.card') ||
+                                target.closest('.stat-card') ||
+                                target.closest('button') ||
+                                target.closest('a');
+
+            if (!isInteractive) {
+                event.preventDefault();
+            }
+        });
+
+        // Add some visual feedback for hyper-click areas
+        document.addEventListener('mousemove', function(event) {
+            const target = event.target;
+            const isInteractive = target.tagName === 'BUTTON' || 
+                                target.tagName === 'A' || 
+                                target.classList.contains('card') ||
+                                target.classList.contains('stat-card') ||
+                                target.closest('.card') ||
+                                target.closest('.stat-card') ||
+                                target.closest('button') ||
+                                target.closest('a');
+
+            if (!isInteractive) {
+                document.body.style.cursor = 'crosshair';
+            } else {
+                document.body.style.cursor = 'pointer';
+            }
+        });
+    </script>
+</body>
+</html>
